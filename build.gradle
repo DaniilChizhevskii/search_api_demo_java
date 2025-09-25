@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    grpcVersion = '1.56.0'
+    protobufVersion = '3.24.0'
+}
+
+dependencies {
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
+
+    implementation "com.google.api.grpc:proto-google-common-protos:2.23.0"
+}
+
+application {
+    mainClass = 'com.example.SearchClient'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            // 👇 Point here so Gradle compiles Yandex + google protos
+            srcDir "${projectDir}/cloudapi"
+            exclude '**/third_party/**'
+        }
+        java {
+            srcDirs += ["build/generated/source/proto/main/java",
+                        "build/generated/source/proto/main/grpc"]
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.fork = true
+    options.forkOptions.memoryMaximumSize = '2G';
+}
+
+compileJava.dependsOn tasks.withType(com.google.protobuf.gradle.GenerateProtoTask);
