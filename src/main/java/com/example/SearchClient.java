@@ -24,6 +24,7 @@ public class SearchClient {
         String query = scanner.nextLine();
         System.out.print("Enter API key: ");
         String apiKey = scanner.nextLine();
+        scanner.close();
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
                 .useTransportSecurity()
@@ -49,7 +50,6 @@ public class SearchClient {
                                 .setSearchType(SearchQueryOuterClass.SearchQuery.SearchType.SEARCH_TYPE_COM)
                 ).build();
         try {
-            // Make the RPC call
             WebSearchResponse response = stub.search(request);
             String rawData = response.getRawData().toStringUtf8();;
             System.out.println("Search response:\n" + rawData);
